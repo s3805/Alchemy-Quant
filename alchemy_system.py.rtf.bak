@@ -1,0 +1,211 @@
+{\rtf1\ansi\ansicpg936\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import backtrader as bt\
+import akshare as ak\
+import pandas as pd\
+import datetime\
+import os\
+\
+# ==============================================================================\
+# \uc0\u27169 \u22359 \u19968 \u65306 \u33258 \u21160 \u21270 \u36873 \u32929 \u22120  (\u29983 \u25104 \u28857 \u37329 \u26415 \u30333 \u21517 \u21333 )\
+# ==============================================================================\
+def generate_alchemy_whitelist(top_n=3):\
+    """\
+    \uc0\u25195 \u25551 \u20840 \u24066 \u22330 A\u32929 \u65292 \u31579 \u36873 \u20986 \u31526 \u21512 \u65306 \u24066 \u20540 >50\u20159 \u65292 0<PE<20\u65292 \u38750 ST\u30340 \u30333 \u39532 \u32929 \
+    \uc0\u20026 \u20102 \u26041 \u20415 \u22238 \u27979 \u28436 \u31034 \u65292 \u40664 \u35748 \u21482 \u36820 \u22238 \u20272 \u20540 \u26368 \u20302 \u30340  top_n \u21482 \u32929 \u31080 \u12290 \
+    """\
+    print(">>> \uc0\u27493 \u39588 1/3\u65306 \u27491 \u22312 \u36830 \u25509 \u19996 \u26041 \u36130 \u23500 \u65292 \u25195 \u25551 \u20840 \u24066 \u22330  A \u32929 \u22522 \u26412 \u38754 ...")\
+    try:\
+        df = ak.stock_zh_a_spot_em()\
+    except Exception as e:\
+        print(f"\uc0\u25968 \u25454 \u33719 \u21462 \u22833 \u36133 : \{e\}")\
+        return []\
+\
+    # \uc0\u25968 \u25454 \u28165 \u27927 \u19982 \u31867 \u22411 \u36716 \u25442 \
+    df['\uc0\u24066 \u30408 \u29575 -\u21160 \u24577 '] = pd.to_numeric(df['\u24066 \u30408 \u29575 -\u21160 \u24577 '], errors='coerce')\
+    df['\uc0\u24635 \u24066 \u20540 '] = pd.to_numeric(df['\u24635 \u24066 \u20540 '], errors='coerce')\
+    \
+    # \uc0\u26680 \u24515 \u36807 \u28388 \u36923 \u36753 \
+    cond_mv = df['\uc0\u24635 \u24066 \u20540 '] > 50_0000_0000  # \u24066 \u20540  > 50\u20159 \
+    cond_pe = (df['\uc0\u24066 \u30408 \u29575 -\u21160 \u24577 '] > 0) & (df['\u24066 \u30408 \u29575 -\u21160 \u24577 '] < 20) # 0 < PE < 20\
+    cond_not_st = ~df['\uc0\u21517 \u31216 '].str.contains('ST|\u36864 ') # \u21076 \u38500 \u22403 \u22334 \u32929 \
+    \
+    whitelist = df[cond_mv & cond_pe & cond_not_st].copy()\
+    \
+    # \uc0\u25353  PE \u20174 \u23567 \u21040 \u22823 \u25490 \u24207 \
+    whitelist = whitelist.sort_values(by='\uc0\u24066 \u30408 \u29575 -\u21160 \u24577 ', ascending=True)\
+    \
+    # \uc0\u25552 \u21462 \u21069  N \u21517 \u20316 \u20026 \u26412 \u27425 \u22238 \u27979 \u30340 \u32929 \u31080 \u27744 \u65288 \u23454 \u25112 \u20013 \u24212 \u20154 \u24037 \u21472 \u21152 \u32929 \u24687 \u29575 >3%\u30340 \u26465 \u20214 \u65289 \
+    pool_df = whitelist.head(top_n)\
+    \
+    # \uc0\u20445 \u23384 \u23436 \u25972 \u30340 \u21021 \u31579 \u21517 \u21333 \u21040 \u26412 \u22320  Excel\u65292 \u20379 \u26085 \u24120 \u21442 \u32771 \
+    excel_name = "alchemy_stock_pool.xlsx"\
+    whitelist[['\uc0\u20195 \u30721 ', '\u21517 \u31216 ', '\u26368 \u26032 \u20215 ', '\u24066 \u30408 \u29575 -\u21160 \u24577 ', '\u24635 \u24066 \u20540 ']].to_excel(excel_name, index=False)\
+    print(f"\uc0\u9989  \u20840 \u24066 \u22330 \u25195 \u25551 \u23436 \u25104 \u65281 \u20849 \u31579 \u20986  \{len(whitelist)\} \u21482 \u36798 \u26631 \u32929 \u31080 \u12290 \u23436 \u25972 \u21517 \u21333 \u24050 \u20445 \u23384 \u33267  \{excel_name\}")\
+    print(f"\uc0\u9989  \u36873 \u21462 \u20272 \u20540 \u26368 \u20302 \u30340  \{top_n\} \u21482 \u32929 \u31080 \u36827 \u20837 \u22238 \u27979 \u27744 \u65306 \{pool_df['\u21517 \u31216 '].tolist()\}\\n")\
+    \
+    # \uc0\u36820 \u22238 \u20845 \u20301 \u25968 \u30340 \u32929 \u31080 \u20195 \u30721 \u21015 \u34920 \
+    return pool_df['\uc0\u20195 \u30721 '].astype(str).str.zfill(6).tolist()\
+\
+# ==============================================================================\
+# \uc0\u27169 \u22359 \u20108 \u65306 \u21382 \u21490  K \u32447 \u25968 \u25454 \u33719 \u21462 \
+# ==============================================================================\
+def get_a_share_data(symbol, start_date, end_date):\
+    """\
+    \uc0\u33719 \u21462 \u21333 \u21482 \u32929 \u31080 \u30340 \u21069 \u22797 \u26435 \u21382 \u21490 \u26085 \u32447 \u25968 \u25454 \u65292 \u24182 \u28165 \u27927 \u20026  Backtrader \u26684 \u24335 \
+    """\
+    try:\
+        df = ak.stock_zh_a_hist(symbol=symbol, period="daily", start_date=start_date, end_date=end_date, adjust="qfq")\
+        if df is None or df.empty:\
+            return None\
+            \
+        df = df[['\uc0\u26085 \u26399 ', '\u24320 \u30424 ', '\u26368 \u39640 ', '\u26368 \u20302 ', '\u25910 \u30424 ', '\u25104 \u20132 \u37327 ']]\
+        df.columns = ['datetime', 'open', 'high', 'low', 'close', 'volume']\
+        df['datetime'] = pd.to_datetime(df['datetime'])\
+        df.set_index('datetime', inplace=True)\
+        df = df.astype(float)\
+        df['openinterest'] = 0.0\
+        return df\
+    except Exception as e:\
+        print(f"[\{symbol\}] \uc0\u34892 \u24773 \u33719 \u21462 \u22833 \u36133 : \{e\}")\
+        return None\
+\
+# ==============================================================================\
+# \uc0\u27169 \u22359 \u19977 \u65306 \u37327 \u21270 \u20132 \u26131 \u31574 \u30053  (\u22810 \u32929 \u36718 \u21160 \u20248 \u21270 \u29256 )\
+# ==============================================================================\
+class MultiStockAlchemyStrategy(bt.Strategy):\
+    params = (\
+        ('ma_period', 120),       # \uc0\u21322 \u24180 \u32447 \u21608 \u26399 \
+        ('buy_pct', 0.88),        # \uc0\u28145 \u24230 \u20559 \u31163 \u20080 \u20837 \u32447  (88%)\
+        ('sell_pct', 1.12),       # \uc0\u38271 \u32447 \u22238 \u24402 \u21334 \u20986 \u32447  (112%)\
+        ('rsi_period', 14),       # RSI\uc0\u21608 \u26399 \
+        ('rsi_oversold', 30),     # \uc0\u24773 \u32490 \u20912 \u28857 \
+        ('rsi_overbought', 70),   # \uc0\u24773 \u32490 \u36807 \u28909 \
+        ('boll_period', 20),      # \uc0\u24067 \u26519 \u24102 \u21608 \u26399 \
+        ('atr_period', 20),       # ATR\uc0\u21608 \u26399 \
+        ('atr_threshold', 0.02),  # \uc0\u27963 \u36291 \u24230 \u19979 \u38480 \u65292 \u38450 \u27515 \u27700 \u32929 \
+        ('max_position_pct', 0.15), # \uc0\u21333 \u21482 \u26631 \u30340 \u36164 \u37329 \u20998 \u37197 \u19978 \u38480  15%\
+    )\
+\
+    def __init__(self):\
+        # \uc0\u20026 \u27599 \u21482 \u32929 \u31080 \u29420 \u31435 \u21021 \u22987 \u21270 \u25216 \u26415 \u25351 \u26631 \u23383 \u20856 \
+        self.inds = dict()\
+        for d in self.datas:\
+            self.inds[d] = dict()\
+            self.inds[d]['sma120'] = bt.indicators.SimpleMovingAverage(d.close, period=self.p.ma_period)\
+            self.inds[d]['rsi'] = bt.indicators.RSI_SMA(d.close, period=self.p.rsi_period)\
+            self.inds[d]['rsi_crossup'] = bt.indicators.CrossUp(self.inds[d]['rsi'], self.p.rsi_oversold)\
+            self.inds[d]['boll'] = bt.indicators.BollingerBands(d.close, period=self.p.boll_period)\
+            self.inds[d]['atr'] = bt.indicators.ATR(d, period=self.p.atr_period)\
+\
+    def log(self, txt, dt=None):\
+        dt = dt or self.datas[0].datetime.date(0)\
+        print(f'[\{dt.isoformat()\}] \{txt\}')\
+\
+    def next(self):\
+        total_value = self.broker.getvalue()\
+\
+        for d in self.datas:\
+            if len(d) < self.p.ma_period:\
+                continue\
+\
+            # \uc0\u35835 \u21462 \u24403 \u21069 \u32929 \u31080 \u21508 \u39033 \u25351 \u26631 \u21644 \u29366 \u24577 \
+            sma120 = self.inds[d]['sma120'][0]\
+            rsi = self.inds[d]['rsi'][0]\
+            rsi_crossup = self.inds[d]['rsi_crossup'][0]\
+            boll_bot = self.inds[d]['boll'].lines.bot[0]\
+            boll_top = self.inds[d]['boll'].lines.top[0]\
+            atr = self.inds[d]['atr'][0]\
+            current_price = d.close[0]\
+            stock_code = d._name\
+            pos = self.getposition(d).size\
+\
+            # --- \uc0\u20080 \u20837 \u36923 \u36753  (\u24038 \u20391 \u20559 \u31163  + \u21491 \u20391 \u20225 \u31283 ) ---\
+            if pos == 0:\
+                is_deep_value = current_price < (sma120 * self.p.buy_pct)\
+                is_active = (atr / current_price) > self.p.atr_threshold\
+                is_panic = current_price <= boll_bot\
+\
+                if is_deep_value and is_active and is_panic and rsi_crossup == 1.0:\
+                    # \uc0\u25353 \u29031 \u36134 \u25143 \u24635 \u36164 \u37329 \u30340  15% \u35745 \u31639 \u33021 \u20080 \u22810 \u23569 \u25163 \u65288 \u21521 \u19979 \u21462 \u25972 \u33267 100\u30340 \u20493 \u25968 \u65289 \
+                    target_cash = total_value * self.p.max_position_pct\
+                    affordable_shares = int(target_cash / current_price) \
+                    buy_lots = (affordable_shares // 100) * 100 \
+\
+                    if buy_lots > 0:\
+                        self.log(f'\uc0\u12304 \u20080 \u20837 \u12305 \u20195 \u30721 :\{stock_code\} | \u20215 \u26684 :\{current_price:.2f\} | \u25968 \u37327 :\{buy_lots\}\u32929 ')\
+                        self.buy(data=d, size=buy_lots)\
+\
+            # --- \uc0\u21334 \u20986 \u36923 \u36753  (\u38271 \u32447 \u36798 \u26631  \u25110  \u27874 \u27573 \u36229 \u20080 ) ---\
+            else:\
+                condition_a_sell = current_price > (sma120 * self.p.sell_pct)\
+                condition_b_sell = (rsi > self.p.rsi_overbought) or (current_price >= boll_top)\
+\
+                if condition_a_sell or condition_b_sell:\
+                    reason = "\uc0\u38271 \u32447 \u22343 \u20540 \u22238 \u24402 " if condition_a_sell else "\u27874 \u27573 \u25216 \u26415 \u38754 \u36229 \u20080 "\
+                    self.log(f'\uc0\u12304 \u21334 \u20986 \u12305 \u20195 \u30721 :\{stock_code\} (\{reason\}) | \u20215 \u26684 :\{current_price:.2f\} | \u25968 \u37327 :\{pos\}\u32929 ')\
+                    self.close(data=d)\
+\
+# ==============================================================================\
+# \uc0\u27169 \u22359 \u22235 \u65306 \u20027 \u31243 \u24207 \u25191 \u34892 \u20837 \u21475 \
+# ==============================================================================\
+if __name__ == '__main__':\
+    print("==================================================")\
+    print("        \uc0\u55357 \u56960  \u20248 \u21270 \u29256 \u28857 \u37329 \u26415 \u37327 \u21270 \u31995 \u32479  \u21551 \u21160  \u55357 \u56960 ")\
+    print("==================================================\\n")\
+\
+    # 1. \uc0\u33258 \u21160 \u29983 \u25104 \u22238 \u27979 \u32929 \u31080 \u27744  (\u21462 \u20272 \u20540 \u26368 \u20302 \u30340 \u21069  3 \u21482 \u30333 \u39532 \u32929 \u27979 \u35797 )\
+    # \uc0\u23454 \u25112 \u20013 \u21487 \u20197 \u25226 \u20837 \u21442 \u25913 \u22823 \u65292 \u25110 \u32773 \u25442 \u25104 \u22266 \u23450 \u21015 \u34920 \u22914  stock_pool = ["000651", "600036", "601318"]\
+    stock_pool = generate_alchemy_whitelist(top_n=3)\
+    \
+    if not stock_pool:\
+        print("\uc0\u32929 \u31080 \u27744 \u20026 \u31354 \u65292 \u31243 \u24207 \u36864 \u20986 \u12290 ")\
+        exit()\
+\
+    # 2. \uc0\u35774 \u32622 \u22238 \u27979 \u26102 \u38388 \u21306 \u38388  (\u36807 \u21435 5\u24180 )\
+    start_time = "20190101"\
+    end_time = datetime.datetime.now().strftime("%Y%m%d")\
+\
+    # 3. \uc0\u21021 \u22987 \u21270  Cerebro \u24341 \u25806 \
+    cerebro = bt.Cerebro()\
+\
+    print(f">>> \uc0\u27493 \u39588 2/3\u65306 \u27491 \u22312 \u19979 \u36733 \u32929 \u31080 \u27744  \{stock_pool\} \u30340 \u21382 \u21490  K \u32447 \u25968 \u25454 ...")\
+    loaded_stocks = 0\
+    for code in stock_pool:\
+        df = get_a_share_data(code, start_time, end_time)\
+        if df is not None and not df.empty:\
+            # \uc0\u21152 \u36733 \u25968 \u25454 \u33267 \u24341 \u25806 \u65292 \u23558  name \u35774 \u20026 \u32929 \u31080 \u20195 \u30721 \u20197 \u20415 \u22312 \u31574 \u30053 \u20013 \u35782 \u21035 \
+            data_feed = bt.feeds.PandasData(dataname=df, name=code)\
+            cerebro.adddata(data_feed)\
+            loaded_stocks += 1\
+            print(f"    - \{code\} \uc0\u25968 \u25454 \u21152 \u36733 \u25104 \u21151 ")\
+            \
+    if loaded_stocks == 0:\
+        print("\uc0\u25152 \u26377 \u25968 \u25454 \u21152 \u36733 \u22833 \u36133 \u65292 \u31243 \u24207 \u36864 \u20986 \u12290 ")\
+        exit()\
+\
+    # 4. \uc0\u37197 \u32622 \u31574 \u30053 \u19982 \u36164 \u37329 \u36134 \u25143 \
+    cerebro.addstrategy(MultiStockAlchemyStrategy)\
+    \
+    start_cash = 100_0000.0  # \uc0\u21021 \u22987 \u36164 \u37329  100 \u19975 \
+    cerebro.broker.setcash(start_cash)\
+    cerebro.broker.setcommission(commission=0.0003) # \uc0\u21360 \u33457 \u31246 \u19982 \u20323 \u37329 \u19975 \u20998 \u20043 \u19977 \
+\
+    print(f"\\n>>> \uc0\u27493 \u39588 3/3\u65306 \u24341 \u25806 \u28857 \u28779 \u65292 \u24320 \u22987 \u22238 \u27979 \u39564 \u35777 ...\\n")\
+    print(f"\uc0\u12304 \u26399 \u21021 \u24635 \u36164 \u37329 \u12305 : \{start_cash:.2f\} \u20803 ")\
+    print("-" * 50)\
+    \
+    # 5. \uc0\u36816 \u34892 \u22238 \u27979 \
+    cerebro.run()\
+    \
+    # 6. \uc0\u36755 \u20986 \u32467 \u26524 \
+    final_cash = cerebro.broker.getvalue()\
+    print("-" * 50)\
+    print(f"\uc0\u12304 \u26399 \u26411 \u24635 \u36164 \u37329 \u12305 : \{final_cash:.2f\} \u20803 ")\
+    print(f"\uc0\u12304 \u21306 \u38388 \u24635 \u25910 \u30410 \u12305 : \{((final_cash - start_cash) / start_cash * 100):.2f\}%")\
+    print("==================================================")}
