@@ -86,8 +86,11 @@ def generate_alchemy_whitelist(top_n_per_sector=1):
         # 如果没有匹配到行业关键词，直接按评分选择
         pool_df = whitelist.head(7)
 
-    # 保存完整初选名单到本地 Excel
-    excel_name = "alchemy_stock_pool_enhanced.xlsx"
+    # 保存完整初选名单到桌面目录
+    import os
+    output_dir = "/Users/xugang/Desktop/炼金术量化交易系统"
+    os.makedirs(output_dir, exist_ok=True)
+    excel_name = os.path.join(output_dir, "alchemy_stock_pool_enhanced.xlsx")
     whitelist[['代码', '名称', '最新价', '市盈率-动态', '总市值', 'score', '换手率']].to_excel(excel_name, index=False)
     print(f"✅  完整名单已保存至  {excel_name}")
     print(f"✅  最终精选  {len(pool_df)} 只股票进入回测池：{pool_df['名称'].tolist()}\n")
@@ -262,8 +265,11 @@ def generate_momentum_stocks(max_stocks=10, lookback_days=60):
         momentum_df = pd.DataFrame(momentum_stocks)
         momentum_df = momentum_df.sort_values('score', ascending=False)
 
-        # 保存结果
-        excel_name = "alchemy_momentum_stocks.xlsx"
+        # 保存结果到桌面目录
+        output_dir = "/Users/xugang/Desktop/炼金术量化交易系统"
+        import os
+        os.makedirs(output_dir, exist_ok=True)
+        excel_name = os.path.join(output_dir, "alchemy_momentum_stocks.xlsx")
         momentum_df.to_excel(excel_name, index=False)
 
         print(f"✅  技术面筛选完成！共 {len(momentum_df)} 只强势股")

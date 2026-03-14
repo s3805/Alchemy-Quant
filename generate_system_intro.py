@@ -25,22 +25,26 @@ def generate_system_intro():
 
     # 注册中文字体
     import os
-    font_paths = [
-        '/System/Library/Fonts/PingFang.ttc',
-        '/System/Library/Fonts/STHeiti Light.ttc',
-        '/System/Library/Fonts/STSong.ttf',
+    font_configs = [
+        ('/System/Library/Fonts/Supplemental/Songti.ttc', 'SongtiSC'),
+        ('/System/Library/Fonts/STHeiti Light.ttc', 'STHeiti-Light'),
+        ('/System/Library/Fonts/STHeiti Medium.ttc', 'STHeiti-Medium'),
     ]
 
     chinese_font = 'Helvetica'
-    for font_path in font_paths:
+    for font_path, font_name in font_configs:
         if os.path.exists(font_path):
             try:
-                pdfmetrics.registerFont(TTFont('ChineseFont', font_path))
-                chinese_font = 'ChineseFont'
-                print(f"✓ 成功加载中文字体: {font_path}")
+                pdfmetrics.registerFont(TTFont(font_name, font_path))
+                chinese_font = font_name
+                print(f"✓ 成功加载中文字体: {font_name}")
                 break
-            except:
+            except Exception as e:
+                print(f"✗ 字体加载失败 {font_name}: {e}")
                 continue
+
+    if chinese_font == 'Helvetica':
+        print("⚠️  警告: 未能加载中文字体，中文可能显示异常")
 
     styles = getSampleStyleSheet()
 
