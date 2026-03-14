@@ -7,6 +7,32 @@ import os
 # ==============================================================================
 # 模块一：增强型量化选股器  (行业分散 + 质量指标)
 # ==============================================================================
+
+def get_stock_industry(stock_name):
+    """根据股票名称判断所属行业"""
+    industries = {
+        '金融': ['银行', '证券', '保险', '信托', '金融', '租赁'],
+        '科技': ['软件', '半导体', '芯片', '人工智能', '云计算', '5G', '科技', '互联网', '数据', '智能'],
+        '医药': ['医药', '生物', '疫苗', '医疗', '健康', '药业', '制药'],
+        '消费': ['白酒', '食品', '家电', '零售', '服装', '纺织', '餐饮', '旅游', '消费'],
+        '能源': ['石油', '煤炭', '天然气', '新能源', '电力', '能源', '光伏', '风电', '电池'],
+        '制造': ['机械', '汽车', '化工', '材料', '制造', '设备', '重工', '轻工'],
+        '公用': ['电力', '水务', '环保', '燃气', '供热', '公用'],
+        '建筑': ['建筑', '建材', '房地产', '基建', '施工', '装修'],
+        '交运': ['交通', '运输', '物流', '航空', '港口', '航运'],
+        '农业': ['农业', '牧业', '渔业', '林业', '种业', '化肥', '农药'],
+        '有色': ['有色', '黄金', '金属', '矿产', '钢铁', '冶炼'],
+        '其他': []
+    }
+
+    for industry, keywords in industries.items():
+        if industry == '其他':
+            continue
+        for keyword in keywords:
+            if keyword in stock_name:
+                return industry
+    return '其他'
+
 def generate_alchemy_whitelist(top_n_per_sector=1):
     """
     智能扫描全A股市场、筛选高质量白马股并实现行业分散：
@@ -90,8 +116,17 @@ def generate_alchemy_whitelist(top_n_per_sector=1):
     import os
     output_dir = "/Users/xugang/Desktop/炼金术量化交易系统"
     os.makedirs(output_dir, exist_ok=True)
-    excel_name = os.path.join(output_dir, "alchemy_stock_pool_enhanced.xlsx")
-    whitelist[['代码', '名称', '最新价', '市盈率-动态', '总市值', 'score', '换手率']].to_excel(excel_name, index=False)
+
+    # 添加行业列
+    whitelist['行业'] = whitelist['名称'].apply(get_stock_industry)
+
+    # 生成时间戳
+    timestamp = datetime.datetime.now().strftime("%Y%m%d")
+    excel_name = os.path.join(output_dir, f"alchemy_stock_pool_enhanced_{timestamp}.xlsx")
+
+    # 调整列顺序，在名称后添加行业
+    columns_order = ['代码', '名称', '行业', '最新价', '市盈率-动态', '总市值', 'score', '换手率']
+    whitelist[columns_order].to_excel(excel_name, index=False)
     print(f"✅  完整名单已保存至  {excel_name}")
     print(f"✅  最终精选  {len(pool_df)} 只股票进入回测池：{pool_df['名称'].tolist()}\n")
 
@@ -265,11 +300,21 @@ def generate_momentum_stocks(max_stocks=10, lookback_days=60):
         momentum_df = pd.DataFrame(momentum_stocks)
         momentum_df = momentum_df.sort_values('score', ascending=False)
 
+        # 添加行业列
+        momentum_df['行业'] = momentum_df['name'].apply(get_stock_industry)
+
+        # 调整列顺序，在name后添加行业
+        columns_order = ['code', 'name', '行业', 'close', 'ma5', 'dif', 'dea', 'score']
+        momentum_df = momentum_df[columns_order]
+
         # 保存结果到桌面目录
         output_dir = "/Users/xugang/Desktop/炼金术量化交易系统"
         import os
         os.makedirs(output_dir, exist_ok=True)
-        excel_name = os.path.join(output_dir, "alchemy_momentum_stocks.xlsx")
+
+        # 生成时间戳
+        timestamp = datetime.datetime.now().strftime("%Y%m%d")
+        excel_name = os.path.join(output_dir, f"alchemy_momentum_stocks_{timestamp}.xlsx")
         momentum_df.to_excel(excel_name, index=False)
 
         print(f"✅  技术面筛选完成！共 {len(momentum_df)} 只强势股")
