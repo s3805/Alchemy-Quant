@@ -23,9 +23,34 @@ def generate_system_intro():
                            rightMargin=40, leftMargin=40,
                            topMargin=40, bottomMargin=40)
 
+    # 注册中文字体
+    import os
+    font_paths = [
+        '/System/Library/Fonts/PingFang.ttc',  # macOS 中文字体
+        '/System/Library/Fonts/STHeiti Light.ttc',
+        '/System/Library/Fonts/STSong.ttf',
+        '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',  # Linux
+        'C:/Windows/Fonts/msyh.ttc',  # Windows 微软雅黑
+        'C:/Windows/Fonts/simhei.ttf',  # Windows 黑体
+    ]
+
+    chinese_font = 'Helvetica'
+    for font_path in font_paths:
+        if os.path.exists(font_path):
+            try:
+                pdfmetrics.registerFont(TTFont('ChineseFont', font_path))
+                chinese_font = 'ChineseFont'
+                print(f"✓ 成功加载中文字体: {font_path}")
+                break
+            except:
+                continue
+
+    if chinese_font == 'Helvetica':
+        print("⚠ 警告: 未找到中文字体，PDF可能显示异常")
+
     styles = getSampleStyleSheet()
 
-    # 自定义样式
+    # 自定义样式 - 使用中文字体
     title_style = ParagraphStyle(
         'Title',
         parent=styles['Heading1'],
@@ -33,7 +58,7 @@ def generate_system_intro():
         textColor=colors.darkblue,
         alignment=TA_CENTER,
         spaceAfter=30,
-        fontName='Helvetica-Bold'
+        fontName=chinese_font
     )
 
     subtitle_style = ParagraphStyle(
@@ -42,7 +67,8 @@ def generate_system_intro():
         fontSize=18,
         textColor=colors.darkblue,
         alignment=TA_CENTER,
-        spaceAfter=20
+        spaceAfter=20,
+        fontName=chinese_font
     )
 
     heading_style = ParagraphStyle(
@@ -51,7 +77,7 @@ def generate_system_intro():
         fontSize=16,
         textColor=colors.darkblue,
         spaceAfter=12,
-        fontName='Helvetica-Bold'
+        fontName=chinese_font
     )
 
     normal_style = ParagraphStyle(
@@ -59,14 +85,16 @@ def generate_system_intro():
         parent=styles['Normal'],
         fontSize=11,
         leading=18,
-        alignment=TA_JUSTIFY
+        alignment=TA_JUSTIFY,
+        fontName=chinese_font
     )
 
     bullet_style = ParagraphStyle(
         'Bullet',
         parent=normal_style,
         leftIndent=20,
-        bulletIndent=10
+        bulletIndent=10,
+        fontName=chinese_font
     )
 
     story = []
@@ -95,7 +123,7 @@ def generate_system_intro():
 
     toc_table = Table(toc_data, colWidths=[5*inch, 1*inch])
     toc_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 0), (1, -1), chinese_font),
         ('FONTSIZE', (0, 0), (1, -1), 11),
         ('BOTTOMPADDING', (0, 0), (1, -1), 8),
         ('TEXTCOLOR', (0, 0), (0, -1), colors.darkblue),
@@ -156,7 +184,7 @@ def generate_system_intro():
         ('BACKGROUND', (0, 0), (1, 0), colors.darkblue),
         ('TEXTCOLOR', (0, 0), (1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (0, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 0), (1, -1), chinese_font),
         ('FONTSIZE', (0, 0), (1, -1), 10),
         ('BOTTOMPADDING', (0, 0), (1, -1), 10),
         ('GRID', (0, 0), (1, -1), 1, colors.black),
@@ -247,7 +275,7 @@ def generate_system_intro():
         ('BACKGROUND', (0, 0), (2, 0), colors.darkblue),
         ('TEXTCOLOR', (0, 0), (2, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (2, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (2, -1), 'Helvetica'),
+        ('FONTNAME', (0, 0), (2, -1), chinese_font),
         ('FONTSIZE', (0, 0), (2, -1), 9),
         ('BOTTOMPADDING', (0, 0), (2, -1), 8),
         ('GRID', (0, 0), (2, -1), 1, colors.black),

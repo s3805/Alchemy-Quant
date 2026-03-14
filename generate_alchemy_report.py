@@ -220,6 +220,27 @@ class AlchemyReportGenerator:
                                rightMargin=30, leftMargin=30,
                                topMargin=30, bottomMargin=30)
 
+        # 注册中文字体
+        import os
+        font_paths = [
+            '/System/Library/Fonts/PingFang.ttc',
+            '/System/Library/Fonts/STHeiti Light.ttc',
+            '/System/Library/Fonts/STSong.ttf',
+            '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
+            'C:/Windows/Fonts/msyh.ttc',
+            'C:/Windows/Fonts/simhei.ttf',
+        ]
+
+        chinese_font = 'Helvetica'
+        for font_path in font_paths:
+            if os.path.exists(font_path):
+                try:
+                    pdfmetrics.registerFont(TTFont('ChineseFont', font_path))
+                    chinese_font = 'ChineseFont'
+                    break
+                except:
+                    continue
+
         # 样式
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle(
@@ -228,7 +249,8 @@ class AlchemyReportGenerator:
             fontSize=24,
             textColor=colors.darkblue,
             alignment=TA_CENTER,
-            spaceAfter=30
+            spaceAfter=30,
+            fontName=chinese_font
         )
 
         heading_style = ParagraphStyle(
@@ -236,14 +258,16 @@ class AlchemyReportGenerator:
             parent=styles['Heading2'],
             fontSize=16,
             textColor=colors.darkblue,
-            spaceAfter=12
+            spaceAfter=12,
+            fontName=chinese_font
         )
 
         normal_style = ParagraphStyle(
             'CustomNormal',
             parent=styles['Normal'],
             fontSize=11,
-            leading=16
+            leading=16,
+            fontName=chinese_font
         )
 
         # 内容
@@ -276,7 +300,7 @@ class AlchemyReportGenerator:
             ('BACKGROUND', (0, 0), (1, 0), colors.darkblue),
             ('TEXTCOLOR', (0, 0), (1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (1, -1), 'Helvetica'),
+            ('FONTNAME', (0, 0), (1, -1), chinese_font),
             ('FONTSIZE', (0, 0), (1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (1, -1), 12),
             ('GRID', (0, 0), (1, -1), 1, colors.black)
@@ -308,7 +332,7 @@ class AlchemyReportGenerator:
             ('BACKGROUND', (0, 0), (3, 0), colors.darkblue),
             ('TEXTCOLOR', (0, 0), (3, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (3, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (3, -1), 'Helvetica'),
+            ('FONTNAME', (0, 0), (3, -1), chinese_font),
             ('FONTSIZE', (0, 0), (3, -1), 9),
             ('BOTTOMPADDING', (0, 0), (3, -1), 10),
             ('GRID', (0, 0), (3, -1), 1, colors.black)
