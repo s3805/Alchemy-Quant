@@ -17,14 +17,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import warnings
 warnings.filterwarnings('ignore')
-
-# 设置中文字体
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'STSong']
-plt.rcParams['axes.unicode_minus'] = False
 
 class AlchemyReportGenerator:
     """炼金术量化交易系统报告生成器"""
@@ -386,7 +380,7 @@ class AlchemyReportGenerator:
         # 读取选股结果
         try:
             df = pd.read_excel(momentum_stocks_file)
-            selected_stocks = df['code'].tolist()
+            selected_stocks = df['code'].astype(str).tolist()  # 确保转换为字符串
 
             if len(selected_stocks) == 0:
                 print("❌ 没有找到符合条件的股票")
